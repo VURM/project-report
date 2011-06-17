@@ -1,0 +1,126 @@
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{appendix}
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[margin=2.6cm]{geometry}
+\usepackage{url}
+\usepackage[
+	hyperfootnotes=true,
+]{hyperref}
+\usepackage{verbatim}
+\usepackage{float}
+\usepackage{listliketab}
+\usepackage{longtable}
+\usepackage{booktabs}
+
+%\usepackage[toc]{multitoc}
+\usepackage[absolute]{textpos} 
+\usepackage{needspace}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{tabularx}
+\usepackage{lscape}
+\usepackage{colortbl}
+\usepackage{wrapfig}
+\usepackage{rotating}
+\usepackage{subfig}
+\usepackage{pdfpages}
+\usepackage[subfigure]{tocloft}
+\usepackage[table]{xcolor}
+\usepackage{listings}
+\usepackage{courier}
+%\usepackage{tocloft}
+\usepackage[stable]{footmisc}
+\usepackage{xcolor}
+\lstset{
+ 	language=python,
+	basicstyle=\footnotesize\ttfamily,
+	stringstyle=\color{OliveGreen},
+	numbers=left,
+	numberstyle=\color{gray}\tiny,
+	commentstyle=\color{magenta},
+	keywordstyle=\color{MidnightBlue}\bfseries,
+	frame=bt,
+	rulecolor=\color{lightgray},
+	numbersep=7pt,
+	extendedchars=true,
+	captionpos=t,
+	breaklines=true,
+	showspaces=false,
+	showtabs=false,
+	tabsize=4, 
+	xleftmargin=20pt,
+	framexleftmargin=20pt,
+	framexrightmargin=0pt,
+    framexbottommargin=0pt,
+	showstringspaces=false,
+ }
+
+%\usepackage{ulem}
+\usepackage{changebar}
+\colorlet{ins}{blue}
+\colorlet{del}{red}
+\newcommand\TLSins[1]{\cbstart{}\textcolor{ins}{\em{#1}}\cbend{}}
+\newcommand\TLSdel[1]{\cbdelete{}\textcolor{del}{\em{#1}}}
+
+\renewcommand\lstlistlistingname{List of Code Listings}
+\lstloadlanguages{
+         python,bash,xml
+ }
+\usepackage{caption}
+\DeclareCaptionFormat{listing}{{\em #1#2#3}}
+\captionsetup{
+	format=listing,
+	font={small},
+}
+
+% Abstract keywords
+\newcommand{\keywords}[1]{
+	\begin{center}\vspace{5pt}\textbf{Keywords}: #1\end{center}
+}
+\newcommand{\imgsource}[1]{\caption*{Source: #1}}
+
+% TODOs and Notes
+\setlength{\marginparwidth}{2cm}
+\newcommand{\sidenotetpl}[4]{\marginpar{\scriptsize\raggedright\color{#2}{\textbf{#1}\,\rule{#3}{0.5pt}\vspace{.5mm}\\#4}\vspace{-1mm}\\\rule{2.1cm}{0.5pt}\vspace{2mm}}}
+\newcommand{\sidetodo}[1]{\sidenotetpl{TODO}{red}{1.1cm}{#1}}   
+\newcommand{\sidenote}[1]{\sidenotetpl{Note}{blue}{1.38cm}{#1}}
+
+% Leave out page numbers on empty pages
+\let\origdoublepage\cleardoublepage
+\renewcommand{\cleardoublepage}{%
+  \clearpage
+  {\pagestyle{empty}\origdoublepage}%
+}
+
+\newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
+
+\usepackage[acronym]{glossaries}
+\makeglossaries
+\input{glossary}
+
+\newcommand{\uchapter}[1]{
+	\chapter*{#1}
+	\addcontentsline{toc}{chapter}{\hspace{\cftchapnumwidth}#1}
+}
+
+\setcounter{tocdepth}{1}
+
+%\renewcommand{\cftdot}{.}
+%\renewcommand{\cftdotsep}{1.5}
+
+%\renewcommand{\cftchapleader}{\cftsecleader}
+
+%\begin{figure}
+%	\begin{center}
+%		\includegraphics[width=0.28\textwidth]{}
+%	\end{center}
+%	\caption{}
+%	\label{fig:}
+%\end{figure}
+
+%\lstset{caption={},label=lst:}
+%\begin{lstlisting}
+%\end{lstlisting}
