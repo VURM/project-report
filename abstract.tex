@@ -2,5 +2,10 @@
 \addcontentsline{toc}{chapter}{\hspace{\cftchapnumwidth}Abstract}
 \vspace{-20pt}
 
+Software deployment on HPC clusters is often subject to strict limitations with regard to software and hardware customization of the underlying platform. One possible approach to circumvent these restrictions is to virtualize the different hardware and software resources by interposing a dedicated layer between the running application and the host operating system.
 
-\keywords{}
+The goal of the VURM project is to enhance existing HPC resource management tools with special virtualization-oriented capabilities such as job submission to specially created virtual machines or runtime migration of virtual nodes to account for updated job priorities or for better performance exploitation.
+
+The two main enhancements this project aims to provide to the already existing tools are firstly, full customization of the platform running the client software, and secondly, improvement of dynamic resource allocation strategies by exploiting virtual machines migration techniques.
+
+\keywords{resource management, virtualization, HPC, slurm, migration}
