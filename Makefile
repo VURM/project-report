@@ -26,3 +26,7 @@ clean:
 statement:
 	pdflatex $(STATEMENT)
 	pdflatex $(STATEMENT)
+
+preview: build
+	#open -a Preview.app
+	#open -a TextMate.app

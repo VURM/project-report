@@ -124,3 +124,14 @@
 %\lstset{caption={},label=lst:}
 %\begin{lstlisting}
 %\end{lstlisting}
+
+% TODO Environment
+\newenvironment{todo}
+{
+	\parskip=.2em\noindent\rule[.15em]{10pt}{.3pt} \textbf{\tiny TODO }{\leaders\hbox{\rule[.15em]{1pt}{.3pt}}\hfill}
+	\\
+}
+{
+	\\[-1.7mm]
+	\rule{\textwidth}{.3pt}\vspace{-2mm}
+}

@@ -2,35 +2,22 @@
 
 \input{preamble}
 
-%\includeonly{head}
+%\includeonly{contents/cluster}
 
 \begin{document}
 
 \include{head}
-
-\cleardoublepage
-\pagenumbering{roman}
 \include{abstract}
-
 \include{toc}
 
-%\newcounter{pagebackup}
-%\setcounter{pagebackup}{\value{page}}
-\pagenumbering{arabic}
-%\setcounter{page}{\value{pagebackup}}
-
-%\include{content/chapters}
-
-\cite{example}
+\include{contents/architecture}
+\include{contents/cluster}
 
 \cleardoublepage
 
 \include{acronyms}
-
 \cleardoublepage
-
 \include{references}
-
 \input{appendices}
 
 \end{document}
