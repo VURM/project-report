@@ -7,3 +7,11 @@
 guard 'shell' do
   watch(/.*\.tex/) {|m| `make preview` }
 end
+
+guard 'shell' do
+  watch(/glossary.tex/) {|m| `make glossary` }
+end
+
+guard 'shell' do
+  watch(/bibliography.bib/) {|m| `make bib` }
+end

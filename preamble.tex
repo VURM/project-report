@@ -7,9 +7,7 @@
 \usepackage[T1]{fontenc}
 \usepackage[margin=2.6cm]{geometry}
 \usepackage{url}
-\usepackage[
-	hyperfootnotes=true,
-]{hyperref}
+\usepackage[hyperfootnotes=true,pdftex,bookmarks=true]{hyperref}
 \usepackage{verbatim}
 \usepackage{float}
 \usepackage{listliketab}
@@ -26,11 +24,13 @@
 \usepackage{wrapfig}
 \usepackage{rotating}
 \usepackage{subfig}
+\usepackage{parskip}
 \usepackage{pdfpages}
 \usepackage[subfigure]{tocloft}
 \usepackage[table]{xcolor}
 \usepackage{listings}
 \usepackage{courier}
+\usepackage{csquotes}
 %\usepackage{tocloft}
 \usepackage[stable]{footmisc}
 \usepackage{xcolor}
@@ -57,6 +57,9 @@
     framexbottommargin=0pt,
 	showstringspaces=false,
  }
+
+\usepackage[backend=biber]{biblatex}
+\addbibresource{bibliography.bib}
 
 %\usepackage{ulem}
 \usepackage{changebar}
@@ -107,6 +110,12 @@
 }
 
 \setcounter{tocdepth}{1}
+
+\usepackage{titlesec}
+
+
+\setlength{\parskip}{.5cm plus1mm minus2mm}
+\setlength{\parindent}{0cm}
 
 %\renewcommand{\cftdot}{.}
 %\renewcommand{\cftdotsep}{1.5}

@@ -1,37 +1,43 @@
 \chapter{Physical cluster provisioner}
+\label{sec:remotevirt}
 
-The VURM architecture allows multiple, stackable, resource provisioners. The physical cluster provisioner which ships with the default implementation is further described in this chapter. This provisioner is able to start new virtual machines on physical nodes of a cluster and to feed them directly to SLURM. Additionally – as the abstraction put in place to keep the provisioner interface adaptable to any resource origin does not allow it – this module is also responsible for the virtual machine migration between physical nodes.
+A resource provisioner is an entity able to provision resources in the form of \gls{slurm} daemons upon request by the \gls{vurm} controller. The \gls{vurm} architecture allows multiple, stackable, resource provisioners and comes with two different implementations. One of them, the physical cluster provisioner, is further described in this chapter.
+
+For additional information about the exact role of a resource provisioner, how it fits into the \gls{vurm} architecture and which tasks it has to be able to accomplish, refer to the \emph{\nameref{sec:architecture}} chapter at page \pageref{sec:architecture}.
+
+The physical cluster provisioner is conceived to manage Linux based HPC clusters. This provisioner is able to execute \gls{slurm} daemons on virtual machines spawned on physical nodes of the cluster and feed them to the \gls{slurm} controller. Additionally this module is also responsible to manage virtual machine migration between physical nodes to better exploit the available computational resources.
 
 The different aspects covered by this chapter are structured as follows:
 
 \begin{itemize}
-    \item Section 2.1 aims to describe the provisioner specific architecture, including description of both internal and external software components, networking configuration and system deployment;
-    \item Section 2.2 introduces some \texttt{libvirt} related concepts and describes the XML domain description file used to configure the guests;
-    \item Section 2.3 deals with different aspects of the virtual machine lifecycle, such as setup, IP address retrieval or public key exchange.
+    \item Section \ref{sec:cluster-arch} aims to describe the provisioner specific architecture, including description of both internal and external software components, networking configuration and system deployment;
+    \item Section \ref{sec:libvirt-integration} introduces some \texttt{libvirt} related concepts and describes the \gls{xml} domain description file used to configure the guests;
+    \item Section \ref{sec:vm-lifecycle} deals with different aspects of the virtual machine lifecycle, such as setup, \gls{ip} address retrieval or public key exchange.
 \end{itemize}
 
-Aspects directly bound to VM migration between physical nodes will not be treated in this chapter. Refer to the VM Migration specific chapter at page XX for additional information about this topic.
-
-\begin{todo}
-Replace acronyms and abbreviations with their respective glossary entry (VURM, SLURM, XML,…).
-\end{todo}
-
-\begin{todo}
-Replace section and page references with the appropriate {\LaTeX} commands.
-\end{todo}
+Aspects directly bound to \gls{vm} migration between physical nodes will not be discussed in this chapter. Refer to the \emph{\nameref{sec:migration}} chapter, starting at page \pageref{sec:migration}, for additional information about this topic.
 
 
 \section{Architecture}
+\label{sec:cluster-arch}
+
+* Need for a central controller and distributed daemons
 
 \subsection{Components}
 
-\subsection{Deplyoment}
+* Describe the components
+
+\subsection{Deployment}
+
+* Introduce the deployment diagram, define the relationships
 
 \begin{todo}
 Design and describe the complete system deployment diagram (provisioner, manager, libvirtd, physical and virtual nodes).
 \end{todo}
 
+
 \section{Libvirt integration}
+\label{sec:libvirt-integration}
 
 \subsection{Naming conventions}
 
@@ -43,6 +49,7 @@ Especially mention domains vs. node vs. hypervisor.
 
 
 \section{VM Lifecycle}
+\label{sec:vm-lifecycle}
 
 \begin{todo}
 Design and describe a sequence diagram illustrating the whole VM lifecycle and use it in the different sections below. The provisioner shall be an actor while the remote node manager one of the main components.
@@ -129,7 +136,7 @@ This method could have worked and is a viable alternative; it was however prefer
 A configuration switch to provide a list of IP/MAC address pairs instead of te adopted solution can although be considered as a future improvement.
 
 
-\subsection{Serial to TCP data exchange}
+\subsubsection{Serial to TCP data exchange}
 
 The last explored and successfully adopted method takes advantage of the serial port emulation feature provided by the different hypervisors and the capability to bind them to (or connect them with) a TCP endpoint of choice.
 

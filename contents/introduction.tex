@@ -1,23 +1,155 @@
 \chapter{Introduction}
+\label{sec:introduction}
+
+\emph{\gls{hpc}} is often seen only as a niche area of the broader computer science topic and frequently associated with highly specialized research contexts only. On the other side, \emph{virtualization}, once considered part of a same or similar limited context, is nowadays gaining acceptance and popularity thanks to its leveraging of cloud-based concepts. The goal of this project is to combine \gls{hpc} tools -- more precisely a batch scheduling system -- with virtualization techniques and evaluate the advantages that such a solution brings over more traditional tools and techniques.
+
+The outcome of this project is a tool called \gls{vurm} and consists in a loosely coupled extension to \gls{slurm} to provide virtual resource management capabilities to run jobs submitted to \gls{slurm} on dynamically spawned virtual machines.
+
+The rest of this chapter is dedicated to present the concepts of \gls{hpc} and virtualization, illustrate the project goal in deeper detail and introduce the tools and technologies on which the project is based. The last section at the end of the present chapter provides an overview of the structure of this report.
 
 
-\section{Overview}
 
-\subsection{Customization}
+\section{High Performance Computing}
+\label{sec:hpc}
 
-\subsection{Migration}
+\glsreset{hpc}
+
+Once limited to specialized research or academic environments, \gls{hpc} continues to gain popularity as the limits of more traditional computation approaches are reached and the need for more powerful paradigms are needed. 
+
+\gls{hpc} brings a whole new set of problems to the already complex world of software development. One possible example are problems bound to CPU processing errors: completely negligible on more traditional computation platforms, they instantly assume primordial importance, introducing the need for specialized error recovery strategies. Another possible problem bound to the high-efficiency characteristics such systems have to expose, are the strict hardware and software limitations imposed by the underlying computation platforms\footnote{Such limitations can be categorized in \emph{hard limitations}, imposed by the particular hardware or software architecture, and \emph{soft limitations}, normally imposed by the entity administering the systems and/or by the usage policies of the owning organization}.
+
+In order to take full advantage of the resources offered by a computation platform, a single task is often split in different jobs which can then in turn be run concurrently across different nodes. A multitude of strategies are available to schedule these jobs in the most efficient manner possible. The application of a given strategy is taken in charge by a \emph{job scheduler}\footnote{Also known for historical reasons as \emph{batch scheduler}.}; a specialized software entity which runs across a given computing cluster and which often provides additional functionality, as for example per-user accounting, system monitoring or other pluggable functionalities.
+
+
+
+\section{Virtualization}
+\label{sec:virtualization}
+
+Virtualization has been an actual topic in the scientific and academic communities for different time before making its debut in the widespread industrial and consumer market. Now adopted and exploited as a powerful tool by more and more people, it rapidly became one of the current trends all over the \gls{it} market mainly thanks to its adoption to leverage the more recent cloud computing paradigm.
+
+The broad \emph{virtualization} term refers to the creation and exploitation of a virtual (rather than actual) version of a given resource. Examples of commonly virtualized resources are complete hardware platforms, operating systems, network resources or storage devices. Additionally, different virtualization types are possible: in the context of this project, the term \emph{virtualization}, always refers to the concept of \emph{hardware virtualization}. Other types of virtualization are operating-system level virtualization, memory virtualization, storage virtualization, etc.
+
+The term \emph{hardware virtualization}, also called \emph{platform virtualization}, is tightly bound to the creation of \emph{virtual machines}; a software environment which presents itself to its guest (that is, the software running on it) as a complete hardware platform and which isolates the guest environment from the environment of the process running the virtual machine. 
+
+Although different additional hardware virtualization types exist, for the scope of this project we differentiate only between \emph{full virtualization} and \emph{paravirtualization}. When using full virtualization, the underlying hardware platform is almost fully virtualized and the guest software, usually an operating system, can run unmodified on it. In the normal case the guest software doesn't even know that it runs on a virtual platform. Paravirtualization, instead, is a technique allowing the guest software to directly access the hardware in its own isolated environment. This requires modifications to the guest software but enables much better performances.\footnote{Paravirtualization is fully supported in the linux kernel starting at version 2.6.25 through the use of the \texttt{virtio} drivers \cite{virtio-www}.}
+
+The main advantages of virtualization techniques are the possibility to run the guest software completely sandboxed (which greatly increases security), the increase of the exploitation ratio of a single machine\footnote{Although this last point does not apply to \gls{hpc} systems (were resources are fully exploited in the majority of the cases), a research pointed out that the average exploitation rate of a common server is about 16\% and that this ratio can be improved to 37\% by using virtualization.} and the possibility to offer full software customization through the use of custom built \gls{os} disk images. This last advantage can be extended in some cases to hardware resources too, allowing to attach emulated hardware resources to a running guest.
+
+Virtualization does not come with advantages only; the obvious disadvantage of virtualized systems is the increased resource usage overhead caused by interposing an additional abstraction layer. Recent software and hardware improvements (mainly \emph{paravirtualization} and \emph{hardware-assisted virtualization} respectively) have contributed to greatly optimize the performance of hardware virtualization.
+
+\begin{todo}
+Find references and exact numbers. If I remember correctly if was Foster in The Grid or another of the books I cited in my last project (regarding efficiency and exploitation ratio).
+\end{todo}
+
+
+
+\section{Project goals}
+\label{sec:goals}
+
+Different problematics and limitations arise when developing software to be run in \gls{hpc} contexts. As seen in \autoref{sec:hpc}, these limitations are either inherited by the hardware and software architecture or imposed by its usage policies. Afterwards, the \autoref{sec:virtualization} introduces a virtualization based approach to circumvent these limitations. It thus deemed possible to overcome the limitations imposed by a particular \gls{hpc} execution environment by trading off a certain amount of performance for a much more flexible platform by using virtualization techniques.
+
+The goal of this project is to add virtual resources management capabilities to an existing job scheduling utility. These enhancements would allow platform users to run much more customized software instances without the administrators having to be concerned about security or additional management issues. In such a system, user jobs would be run inside a virtual machine using a user provided base disk image, effectively leaving the hosting environment untouched.
+
+The adoption of a virtual machine based solution enables advanced scheduling capabilities to be put in place: the exploitation of virtual machine migration between physical nodes allows the job scheduler to adapt resource usage to the current system load and thus dynamically optimize resource allocation at execution time and not only while scheduling jobs. This optimization can be carried out by migrating \glspl{vm} from one physical node in the system to another and executing them on the best available resource at every point in time.
+
+To reach the prefixed objective, different partial goals have to be attained. The following breakdown illustrates in deeper details each of the partial tasks which have to be accomplished:
+
+\begin{enumerate}
+	\item Adding support to the job scheduler of choice for running regular jobs inside dynamically created and user customizable virtual machines.
+	\item Adding support for controlling the state of each virtual machine (pausing/resuming, migration) to the job scheduler so that more sophisticated resource allocation decisions can be made (e.g. migrating multiple virtual machines of a virtual cluster onto a single physical node) as new information (e.g. new jobs) become available.
+	\item Implementing simple resource allocation strategies based on the existing job scheduling techniques to demonstrate the capabilities added to the job scheduler and the \gls{vmm} in (1) and (2) above.
+\end{enumerate}
+
+A more formal project statement, containing additional information such as deadlines and additional resources, can be found in \autoref{apx:statement}.
+
 
 
 \section{Technologies}
+\label{sec:tech}
 
-\subsection{SLURM}
+Different, already existing libraries and utilities were used to build the final prototype. This section aims to provide an overview of the main external components initially chosen to build upon. The absolutely necessary components are a job scheduler to extend and an \gls{hypervisor} (or \gls{vmm}) to use to manage the virtual machines; in the case of this project, \texttt{SLURM} and \texttt{KVM/QUEMU} were chosen, respectively.
 
-\subsection{KVM/QEMU}
+A \gls{vmm} abstraction layer called \texttt{libvirt} was used in order to lessen the coupling between the developed prototype and the hypervisor, allowing to easily swap out \texttt{KVM} with a different hypervisor. This particular decision is mainly due to an effort to make a future integration with \texttt{Palacios} -- a particular \gls{vmm} intended to be used for high performance computing -- as easy as possible.
 
-\subsection{Libvirt}
+The remaining part of this section aims to introduce the reader to all the utilities and libraries cited above.
+
+\subsection*{SLURM}
+\label{sec:slurm}
+\glsreset{slurm}
+
+\gls{slurm} is a batch scheduler for Linux based operating systems. Initially developed at the Lawrence Livermore National Laboratory, it was subsequently open sourced and is now a well known protagonist of the job scheduling ecosystem. The authors \cite{slurm-www} describe it with the following words:
+
+\begin{quote}
+\glsreset{slurm}
+The \gls{slurm} is an open source, fault-tolerant, and highly scalable cluster management and job scheduling system for large and small Linux clusters. \gls{slurm} requires no kernel modifications for its operation and is relatively self-contained. As a cluster resource manager, SLURM has three key functions. First, it allocates exclusive and/or non-exclusive access to resources (compute nodes) to users for some duration of time so they can perform work. Second, it provides a framework for starting, executing, and monitoring work (normally a parallel job) on the set of allocated nodes. Finally, it arbitrates contention for resources by managing a queue of pending work.
+\end{quote}
+
+The \autoref{sec:slurm-arch} provides additional information about the \gls{slurm} working model and architectural internals.
+
+
+\subsection*{KVM/QEMU}
+\label{sec:kvm}
+\glsreset{vmm}
+
+QEMU \cite{qemu-www} (which probably stands for \emph{Quick EMUlator} \cite{ubuntu-admin}) is an open source processor emulator \emph{and} virtualizer. It can be used as both an emulator or a hosted \gls{vmm}. This project only takes advantage of its virtualization capabilities, by making little or no use of the emulation tools.
+
+\gls{kvm} \cite{kvm-www} is a full virtualization solution for Linux based operating systems running on x86 hardware containing virtualization extensions (specifically, Intel VT or AMD-V). To run hardware accelerated guests, the host operating system kernel has to include support for the different \gls{kvm} modules; this support is included in mainline Linux kernel as of version 2.6.20.
+
+The main reason for choosing the \gls{kvm}/QEMU match over other \glspl{vmm} is KVM's support for both live and offline \gls{vm} migration as well as both being released as open source software. The recent versions of QEMU distributed by the package managers of most Linux distributions already include (either by default or optionally) the bundled KVM/QEMU build\footnote{On Debian and Ubuntu systems only the \texttt{qemu-kvm} package is provided; the \texttt{qemu} package is a dummy transitional package for \texttt{qemu-kvm}. On Gentoo systems, \gls{kvm} support can be enabled for the \texttt{qemu} package by setting the \texttt{kvm} USE flag.}.
+
+
+\subsection*{Palacios}
+\label{sec:palacios}
+
+Palacios is an open source \gls{vmm} specially targeted at research and teaching in high performance computing, currently under development as part of the V3VEE project\footnote{\url{http://v3vee.org/}}. The official description as found on the publicly-accessible website \cite{palacios-www} is reported below:
+
+\begin{quote}
+Palacios is a type I, non-paravirtualized, OS-independent VMM that builds on the virtualization extensions in modern x86 processors, particularly AMD SVM and Intel VT. Palacios can be embedded into existing kernels, including very small kernels. Thus far, Palacios has been embedded into the Kitten lightweight kernel from Sandia National Labs and the University of Maryland's GeekOS teaching kernel. Currently, Palacios can run on emulated PC hardware, commodity PC hardware, and Cray XT3/4 machines such as Sandia's Red Storm.
+\end{quote}
+
+Palacios is also able to boot an unmodified Linux distribution \cite{palacios} and can thus be used on a wide range of both host hardware and software platforms and to host different (more or less lightweight) guest operating systems.
+
+
+\subsection*{Libvirt}
+\label{sec:libvirt}
+
+The libvirt project aims to provide an abstraction layer o manage virtual machines over different hypervisors, both locally and remotely. It offers an \gls{api} to create, start, stop, destroy and otherwise manage virtual machines and their respective resources such as network devices, storage devices, processor pinnings, hardware interfaces, etc. Additionally, through the libvirt daemon it accepts incoming remote connections and allows complete exploitation of the \gls{api} from remote locations, while accounting for authentication and authorization related issues.
+
+The libvirt codebase is written in C, but bindings for different languages are provided as part of the official distribution or as part of external packages. The currently supported languages are C, C\#, Java, OCaml, Perl, PHP, Python and Ruby.
+
+The decision to use libvirt as an abstraction layer instead of directly accessing the KVM/QEMU exposed \gls{api} was taken to facilitate to switch to a different \gls{vmm} if the need should arise, and, in particular, to ease an eventual Palacios integration once the necessary support is added to the libvirt \gls{api}.
+
+The \autoref{sec:remotevirt} contains additional information of \texttt{libvirt}'s working model and its integration with the \gls{vurm} architecture.
+
 
 
 \section{Context}
+\label{sec:context}
+\glsreset{sslab}
+\glsreset{unm}
+\glsreset{bsc}
+
+This project is the final diploma work of Jonathan Stoppani, and will allow him to obtain the \gls{bsc} in Computer Science at the College for Engineering and Architecture Fribourg, part of the University of Applied Sciences of Western Switzerland.
+
+This work is carried out at \gls{sslab} of the Computer Science department of the \gls{unm}, USA during Summer 2011.
+
+Prof. Peter Kropf, Head of the Distributed Computing Group and Dean of the Faculty of Science of the University of Neuchatel, Switzerland covers the role of expert. Prof. Patrick~G.~Bridges, associate professor at the University of New Mexico is supervising the project locally. Prof. Pierre Kuonen, Head of the GRID and Cloud Computing Group, and Prof.~François~Kilchoer, Dean of the Computer Science Department, both of the College of Engineering and Architecture of Fribourg, are supervising the project from Switzerland.
 
 
 \section{Structure of this report}
+\label{sec:structure}
+
+This section aims to describe the overall structure of the present report by shortly introducing the contents of each chapter and placing it into the right context. The main content is organized in the following chapters:
+
+\begin{itemize}
+	\item The first chapter, \autoref{sec:introduction} introduces the project and the context, explains the problematics aimed to be solved and lists the main adopted technological choices.
+	\item After a general overview, \autoref{sec:architecture} explains the overall architectural design of the \gls{vurm} tool and how it fits into the existing \gls{slurm} architecture by arguing the different choices.
+	\item Chapter \ref{sec:remotevirt} introduces the \texttt{remotevirt} resource provisioner, one of the two provisioners shipped with the default \gls{vurm} implementation. This chapter, as well as the following one, presupposes a global understanding of the
+	\item A possible alternate resource provisioner is described in \autoref{sec:cloud} in order to offer a possible cloud-based resource provisioner approach. The cloud resource provisioner presented in this chapter wasn't actually implemented and serves only as a case study.
+	\item Virtual machine migration between physical nodes, one of the main advantages of using a virtualization-enabled job scheduler, is described in \autoref{sec:migration}. The migration capabilities are implemented as part of the \texttt{remotevirt} provisioner but presented in a different chapter as a whole self-standing subject.
+	\item Finally, \autoref{sec:conclusions}, concludes the report by resuming the important positive and negative aspects, citing possible areas of improvement and providing a personal balance of the executed work.
+\end{itemize}
+
+In addition to the main content, different appendices are available at the end of the present report, containing information such as user manuals, project management assets or additional related information not directly relevant to the presented chapter. Refer to the table of contents for a more detailed contents listing.
+
+A glossary, the used acronyms, and the cited references are also available at the pages \pageref{sec:glossary}, \pageref{sec:acronyms}, and \pageref{sec:references} respectively.

@@ -1,4 +1,4 @@
-\documentclass[11pt,a4paper,twoside,onecolumn,openbib,english]{book}
+\documentclass[11pt,a4paper,twoside,onecolumn,english]{book}
 
 \input{preamble}
 
@@ -6,19 +6,49 @@
 
 \begin{document}
 
+\titlespacing{\section}{0pt}{2mm}{-2mm}
+\titlespacing{\subsection}{0pt}{1mm}{-3mm}
+
 \include{head}
 \include{abstract}
 \include{toc}
 
+\cleardoublepage
+\pagenumbering{arabic}
+
 \include{contents/introduction}
 \include{contents/architecture}
 \include{contents/cluster}
+\include{contents/cloud}
+\include{contents/migration}
+\include{contents/conclusions}
 
 \cleardoublepage
+\phantomsection
+\label{sec:glossary}
+\addcontentsline{toc}{chapter}{\hspace{\cftchapnumwidth}Glossary}
+\printglossary[type=main]
 
-\include{acronyms}
 \cleardoublepage
-\include{references}
-\input{appendices}
+\phantomsection
+\label{sec:acronyms}
+\addcontentsline{toc}{chapter}{\hspace{\cftchapnumwidth}Acronyms}
+\printglossary[type=\acronymtype]
+
+\cleardoublepage
+\phantomsection
+\label{sec:references}
+\addcontentsline{toc}{chapter}{\hspace{\cftchapnumwidth}References}
+\printbibliography[title=References]
+
+\appendix
+\include{appendices/statement}
+\chapter{ViSaG comparison}
+\chapter{User manual}
+\section{VM image creation}
+\chapter{Quality Assurance}
+\chapter{Meeting minutes}
+\chapter{Planning}
+\chapter{CD-ROM contents}
 
 \end{document}

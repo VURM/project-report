@@ -22,3 +22,5 @@
 *.out
 *.pdf
 *.toc
+*.bcf
+*.run.xml
