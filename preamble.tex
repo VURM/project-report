@@ -13,6 +13,7 @@
 \usepackage{listliketab}
 \usepackage{longtable}
 \usepackage{booktabs}
+\usepackage{multirow} % Enable columns spawning multiple rows
 
 %\usepackage[toc]{multitoc}
 \usepackage[absolute]{textpos} 
@@ -57,6 +58,18 @@
     framexbottommargin=0pt,
 	showstringspaces=false,
  }
+
+
+% Define new tabularx column types:
+%  - R: streteched right aligned
+%  - C: stretched centered
+\newcolumntype{R}{>{\raggedleft\arraybackslash}X}%
+\newcolumntype{C}{>{\centering\arraybackslash}X}%
+
+% Set row height to 1.3 times the original value, gets a little bit more 
+% whitespace between rows
+\renewcommand{\arraystretch}{1.3}
+
 
 \usepackage[backend=biber]{biblatex}
 \addbibresource{bibliography.bib}
@@ -112,6 +125,17 @@
 \setcounter{tocdepth}{1}
 
 \usepackage{titlesec}
+
+% ---
+% Add a line gap between chapters in the list of listings as well (use the
+% same style as the list of figures)
+\makeatletter
+\let\my@chapter\@chapter
+\renewcommand*{\@chapter}{%
+  \addtocontents{lol}{\protect\addvspace{10pt}}%
+  \my@chapter}
+\makeatother
+% ---
 
 
 \setlength{\parskip}{.5cm plus1mm minus2mm}

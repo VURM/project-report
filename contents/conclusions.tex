@@ -1,7 +1,82 @@
-
 \chapter{Conclusions}
 \label{sec:conclusions}
 
-\section{Future developments}
+Three whole months of planning, design, implementation and testing are over. A new tool to integrate an already existing job scheduler and virtual machine monitor was created and the time to conclude the work has finally come.
+
+This last chapter of the present report aims to summarize the different achievements, illustrate the solved problems, hinting at some possible future developments and finally giving some personal advice about the entire experience. This chapter is thus structured as follows:
+
+\begin{itemize}
+	\item Section~\ref{sec:results} summarizes the project output by highlighting the initial goals and comparing them to the final results;
+	\item Section~\ref{sec:problems} lists some of the most important encountered problems, the solution eventually found for them and the impact they had on the project itself;
+	\item Section~\ref{sec:future} gives a list of hints for future work by summarizing what already done for single sections in the project and adds additional items highlighting other possible improvements;
+	\item Finally, section~\ref{sec:experience}, gives a personal overview and digest of the whole experience, speaking about the project itself and its execution context.
+\end{itemize}
+
+
+
+\section{Achieved results}
+\label{sec:results}
+
+The goal of the project was to add virtual resources management capabilities to a job scheduler thought for \gls{hpc} clusters. \gls{slurm} was chosen as the batch scheduler for the job, while virtualization functionalities were provided using a combination of libvirt and KVM/QEMU (the latter one being swappable with other hypervisors of choice).
+
+The final result consist in a tool called \gls{vurm} which nicely integrates all these different components in a single working unit. No modifications are necessary to the external tools in order for them to work in such a setup.
+
+Using the developed tool, and by using the provided \texttt{remotevirt} resource provisioner, it is possible to create virtual clusters of \glspl{vm} running on different physical nodes (belonging to a \emph{physical} cluster). Pluggable interfaces are also provided in order to be able to add new resource provisioners to the system and also aggregate domains running on heterogenous systems (grids, clouds, single nodes,…) at the same time.
+
+Particular attention was given to the \texttt{remotevirt} provisioner (also called \emph{physical resources provisioner}) and to the functionalities offered by its particular architecture. By using this provisioner, it is possible to create ad-hoc virtual machines, assemble them into virtual clusters and provide them to \gls{slurm} as partitions to which jobs can be submitted in the usual fashion.
+
+Additionally, this provisioner exposes a complete resource management framework heavily based on the possibility to migrate domains (e.g. virtual machines) from one physical node to another. Using components responsible respectively for \emph{resource allocation}, \emph{migration scheduling}, and \emph{migration execution} it is possible to dynamically adapt the resources allocated to a virtual cluster based on different criteria such as priority definitions, node computing power, current system load, etc.
+
+
+
+\section{Encountered problems}
+\label{sec:problems}
+
+Each new development project brings a new set of challenges and problems to the table. Research projects, in which new methods are approached and areas explored, may suffer even more from such eventualities. This project was not different from any other and a whole bunch of problematics had to be approached, dealt with and eventually solved.
+
+Two bigger problems can be identified in the whole project development timeframe. The first one was the retrieval of the \gls{ip} address of a newly spawned virtual machine. Even though that different solutions already existed (many of them also presented in the respective chapter), none of them fitted the specific context and an alternative and more creative one had to be implemented. This final solution -- transferring the \gls{ip} address over the serial port to a listening \gls{tcp} server -- may now seem an obvious approach to a non-problem but its finding caused a non-trivial headache when the problem firstly occurred.
+
+The second important problem which was encountered manifested itself towards the end of the project, when \gls{vm} migration had to be implemented. As \gls{kvm} claimed support for live migration out of the box, no big analysis and testing was performed in the initial project phase and this led to the later finding that this specific capability was not working on the development setup. Because of the importance given to live migration over offline migration, the source of the problem was researched for two entire weeks without success. This lead to a bigger adaptation of the planning and a total loss of motivation. Finally, a more complex (but working) offline migration solution was implemented.
+
+Not always, as it was the case for the second presented issue, a direct solution could be found and a workaround had to be implemented instead. The lessons learned from the encountered problems are essentially two: firstly, put more effort into the initial analysis phase by testing out important required functionalities and providing simple proof of concepts for the final solution; secondly, if a problem is encountered and a solution cannot be found in a reasonable amount of time adopt a workaround, continue with the development of the remaining part of the project and come back to the problematic in order to find a more optimal solution only once the critical parts of the project are finished.
+
+Adopting this two learnings it should be possible to have a better initial overview of the different tasks and their complexity first, and a more consequent adherence to the planning subsequently.
+
+
+
+\section{Future work}
 \label{sec:future}
+
+The first section exposed the different achievements of the present project by summarizing the work which was done and the produced results. The second section resumed the encountered problems and how they were eventually solved. This section aims to offer some hints for future work which can be done to improve the project.
+
+Improvements tightly related to the main components of the \gls{vurm} utility have already been listed in the respective chapters. Section~\ref{sec:future-cluster} of the \emph{\nameref{sec:remotevirt}} chapter listed the implementation of scalable disk image transfers using BitTorrent and support for \gls{vlan} based network setups as main possible improvements to the \texttt{remotevirt} resources provisioner. Similarly, for the \emph{\nameref{sec:migration}} chapter, \autoref{sec:migration-improvements} offers an extended list of additional features and improvements to the migration framework, resources allocation and scheduling strategies and migration techniques. Possible improvements in this area are for example enabling physical nodes to be shared between virtual clusters or implementing live migration to minimize service downtime.
+
+An interesting addition to the project, to effectively testing the resources origin abstraction put in place in the early development stages, would be the implementation of a cloud computing based resources provisioner. Such a provisioner would allocate new resources on the cloud when a new virtual cluster is requested. Additionally, such a provisioners could be used as a fallback to the \texttt{remotevirt} provisioner. In such a scenario, resources on the cloud would be allocated only if the physical cluster provisioner has exhausted all available physical nodes.
+
+An important part actually lacking and potentially yielding interesting results is a complete testing and benchmarking analysis of the \gls{vurm} utility running on larger scale systems. Empirical tests and simple benchmarks were executed only on a maximum of three machines and mainly for development purposes. A complete overview of the scalability of the system when run on a larger amount of nodes would also highlight possible optimization areas which didn't pose any problem when running on the development environment.
+
+The different pluggable part of the \gls{vurm} application still require to modify the main codebase. It is possible to implement a plugin architecture leveraging Twisted's component framework in an easy and straightforward way. Additionally, by allowing custom command line parsers for each plugin, it is possible to add provisioners specific options to existing commands. Such a system would allow to configure all the components (provisioners, resource allocators, migration schedulers and migration managers) using the standard configuration file and removing the need to modify the \gls{vurm} code.
+
+The adoption of libvirt abstracted the differences between the plethora of available hypervisors. One of the reasons to use libvirt instead of accessing KVM/QEMU functionalities directly was the possible future adoption of the Palacios hypervisor. This last improvement idea is about implementing support for the Palacios hypervisor, either by adding the needed translation layers to libvirt or by directly accessing it from the \gls{vurm} tools by adding a new \texttt{palacios} resource provisioner.
+
+
+\section{Personal experience}
+\label{sec:experience}
+
+Working for three full months on a single project may be challenging. Doing so overseas in a completely new context and working with people which were never met before surely is. These and many other pros and cons of the experience of developing this bachelor project in a whole different environment are to be summarized in this last section of the present report.
+
+\glsreset{unm}
+\glsreset{sslab}
+As already explained in the \nameref{sec:introduction}, this project was carried out at the \gls{sslab} of the Computer Science department of the \gls{unm}, USA during the summer 2011 and is the final diploma work which hopefully will allow me to obtain \gls{bsc} in Computer Science at the College for Engineering and Architecture Fribourg.
+
+One of the particularities about the initial phases of the project was that I left Switzerland without a precise definition of what the project would have been. The different goals and tasks were defined only once settled in New Mexico, in collaboration with the local advisors and had to be communicated back and explained to the different people supervising the project remotely from Switzerland. Although being a challenge, the need to being able to explain what the project is to people completely external to its definition and, additionally, since the first iterations constituted a big advantage in that it was necessary to clearly formulate all the different aspects of the statement. The same argument can be made for the different meetings incurred during the entire project duration: I was always forced to explain the progresses, issues and results in a sub-optimal environment; that forced me, however, to adopt a clearer and more understandable formulation.
+
+Another interesting aspect is the complete new environment in which the project was executed: new people were met, a new working location had to be setup, different working hours, different relationships with professors and colleagues had to be taken care of, etc. All these different aspects greatly contributed to make my experience varied, interesting and enriching. Unfortunately this also brings negative aspects to the table and keeping the motivation high for the whole duration of my stay was not always possible.
+
+To summarize this whole experience, I would say that, beside the highs and lows, each aspect of my stay in New Mexico somewhat contributed to greatly enrich an already interesting and challenging adventure which, in any case, I would recommend to anyone.
+
+
+
+
+
 

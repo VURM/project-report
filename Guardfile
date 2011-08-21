@@ -13,5 +13,5 @@ guard 'shell' do
 end
 
 guard 'shell' do
-  watch(/bibliography.bib/) {|m| `make bib` }
+  watch(/bibliography.bib/) {|m| `make bib preview` }
 end

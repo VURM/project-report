@@ -1,0 +1,303 @@
+\chapter{User manual}
+\label{apx:user-manual}
+\section{Installation}
+
+The \gls{vurm} installation involves different components but does not present an high complexity degree. The following instructions are basing on an Ubuntu distribution but can be generalized to any Linux based operating system.
+
+\begin{enumerate}
+	\item Install \gls{slurm}. Packages are provided for Debian, Ubuntu and other distributions such as Gentoo. For complete installation instructions refer to \url{https://computing.llnl.gov/linux/slurm/quickstart_admin.html}, but basically this comes down to execute the following command:
+	
+	\lstset{language=bash,numbers=none,xleftmargin=4pt,framexleftmargin=4pt,label={},caption={}}
+	\begin{lstlisting}
+$ sudo apt-get install slurm-llnl
+	\end{lstlisting}
+	
+	\item Install libvirt. Make sure to include the Python bindings too:
+	
+	\begin{lstlisting}
+$ sudo apt-get install libvirt-bin python-libvirt
+	\end{lstlisting}
+	
+	\item Install the Python dependencies on which \gls{vurm} relies on:
+	
+	\begin{lstlisting}
+$ sudo apt-get install python-twisted \
+                       python-twisted-conch \
+                       python-lxml \
+                       python-setuptools
+	\end{lstlisting}
+	
+	\item Get the last development snapshot from the GitHub repository:
+	
+	\begin{lstlisting}
+$ wget -O vurm.tar.gz https://github.com/VURM/vurm/tarball/develop
+	\end{lstlisting}
+	
+	\item Extract the sources and change directory:
+	
+	\begin{lstlisting}
+$ tar xzf vurm.tar.gz && cd VURM-vurm-*
+	\end{lstlisting}
+	
+	\item Install the package using \texttt{setuptools}:
+	\begin{lstlisting}
+$ sudo python setup.py install
+	\end{lstlisting}
+	
+\end{enumerate}
+
+\section{Configuration reference}
+
+The \gls{vurm} utilities all read configuration files from a set of predefined locations. It is also possible to specify a file by using the \texttt{-\--config} option. The default locations are \texttt{/etc/vurm/vurm.conf} and \texttt{$\sim$/.vurm.conf}.
+
+The configuration file syntax is a variant of INI with interpolation features. For more information about the syntax refer to the Python \texttt{ConfigParser} documentation at \url{http://docs.python.org/library/configparser.html}.
+
+All the different utilities and components can be configured in the same file by using the appropriate section names. The rest of this section, after the example configuration file reported in the \autoref{lst:config}, lists the different sections and their configuration directives.
+
+\lstset{language=sh,caption={Example VURM configuration file},label=lst:config}
+\begin{lstlisting}
+# General configuration
+[vurm]
+debug=yes
+
+# Client configuration
+[vurm-client]
+endpoint=tcp:host=10.0.6.20:port=9000
+
+# Controller node configuration
+[vurmctld]
+endpoint=tcp:9000
+slurmconfig=/etc/slurm/slurm.conf
+reconfigure=/usr/bin/scontrol reconfigure
+
+# Remotevirt provisioner configuration
+[libvirt]
+migrationInterval=30
+migrationStabilizationTimer=20
+domainXML=/root/sources/tests/configuration/domain.xml
+nodes=node-0,node-1
+
+[node-0]
+endpoint=tcp:host=10.0.6.20:port=9010
+cu=20
+
+[node-1]
+endpoint=tcp:host=10.0.6.10:port=9010
+cu=1
+
+# Computing nodes configuration
+[vurmd-libvirt]
+basedir=/root/sources/tests
+sharedir=/nfs/student/j/jj
+username=root
+key=%(basedir)s/configuration/vurm.key
+sshport=22
+slurmconfig=/usr/local/etc/slurm.conf
+slurmd=/usr/local/sbin/slurmd -N {nodeName}
+endpoint=tcp:port=9010
+clonebin=/usr/bin/qemu-img create -f qcow2 -b {source} {destination}
+hypervisor=qemu:///system
+statedir=%(sharedir)s/states
+clonedir=%(sharedir)s/clones
+imagedir=%(sharedir)s/images
+\end{lstlisting}
+
+
+\subsection{The \texttt{vurm} section}
+
+This section serves for general purpose configuration directives common to all components. Currently only one configuration directive is available:
+
+\texttt{\textbf{debug}} Set this to \texttt{yes} to enable debugging mode (mainly more verbose logging) or to \texttt{no} to disable it.
+
+\subsection{The \texttt{vurm-client} section}
+
+This section contains configuration directives for the different commands interacting with a remote daemon. Currently only one configuration directive is available:
+
+\textbf{\texttt{endpoint}} Set this to the endpoint on which the server is listening on. More information about the endpoint syntax can be found online at: \url{http://twistedmatrix.com/documents/11.0.0/api/twisted.internet.endpoints.html#clientFromString}. To connect to a TCP host listening on port 9000 at the host example.com, use the following string: \texttt{tcp:host=example.com:port=9000}
+
+\subsection{The \texttt{vurmctld} section}
+
+This section contains configuration directives for the \gls{vurm} controller daemon. The available options are:
+
+\textbf{\texttt{endpoint}} The endpoint on which the controller has to listen for incoming client connections. More information about the endpoint syntax can be found online at: \url{http://twistedmatrix.com/documents/11.0.0/api/twisted.internet.endpoints.html#serverFromString}. To listen on all interfaces on the TCP port 9000, use the following string: \texttt{tcp:9000}
+
+\textbf{\texttt{slurmconfig}} The path to the \gls{slurm} configuration file used by the currently running \gls{slurm} controller daemon. The \gls{vurm} controller daemon needs read and write access to this file (a possible location is: \texttt{/etc/slurm/slurm.conf}).
+
+\textbf{\texttt{reconfigure}} The complete shell command to use to reconfigure the running \gls{slurm} controller daemon once the configuration file was modified. The suggested value is \texttt{/usr/bin/scontrol reconfigure}.
+
+\subsection{The \texttt{libvirt} section}
+
+This section contains the configuration directives for the \texttt{remotevirt} provisioner. The available options are:
+
+\textbf{\texttt{domainXML}} The location of the libvirt domain XML description file to use to create new virtual machines.
+
+\textbf{\texttt{migrationInterval}} The time (in seconds) between resource reallocation and migration triggering if no other event (virtual cluster creation or release) occur in the meantime.
+
+\textbf{\texttt{migrationStabilizationTimer}} The time (in seconds) to wait for the system to stabilize after a virtual cluster creation or release event before the resource reallocation and migration is triggered.
+
+\textbf{\texttt{nodes}} A comma-separated list of section names contained in the same configuration file. Each section defines a single node or a node set on which a \texttt{remotevirt} daemon is running. The format of these sections is further described in the next subsection.
+
+\subsection{The node section}
+
+This section contains the configuration directives to manage a physical node belonging the the \texttt{remotevirt} provisioner. The section name can be arbitrarily chosen (as long as it does not conflict with other already defined sections). The available options are:
+
+\textbf{\texttt{endpoint}} The endpoint on which the \texttt{remotevirt} is listening on. More information about the endpoint syntax can be found online at: \url{http://twistedmatrix.com/documents/11.0.0/api/twisted.internet.endpoints.html#clientFromString}. This endpoint allows to group similar nodes together by specifying an integer range in the last part of the hostname, similarly as possible in the \gls{slurm} configuration. It is thus possible to define a node set containing 10 similar nodes using the following value: \texttt{tcp:hostname[0-9]:port=9010}
+
+\textbf{\texttt{cu}} The amount of computing units associated to this node (or each node in the set).
+
+
+\subsection{The \texttt{vurmd-libvirt} section}
+
+This section contains the configuration directives for the single \texttt{remotevirt} daemons running on the physical nodes. The available options are:
+
+\textbf{\texttt{username}} The username to use to remotely connect to the spawned virtual machines via SSH and execute the \texttt{slurm} daemon spawning command.
+
+\textbf{\texttt{sshport}} The TCP port to use to establish the SSH connection to the virtual machine.
+
+\textbf{\texttt{slurmconfig}} The location, on the virtual machine, where the \gls{slurm} configuration file has to be saved.
+
+\textbf{\texttt{slurmd}} The complete shell command to use to spawn the \gls{slurm} daemon on the virtual machine. This value will be interpolated for each virtual machine using Python's \texttt{string.format} method. Currently the only available interpolated value is the \texttt{nodeName}. The suggested value is \texttt{/usr/local/sbin/slurmd -N {nodeName}}.
+
+\textbf{\texttt{key}} The path to the private key to use to login to the virtual machine via SSH.
+
+\textbf{\texttt{endpoint}} The endpoint on which the \texttt{remotevirt} daemon has to listen for incoming connections from the \texttt{remotevirt} controller. More information about the endpoint syntax can be found online at: \url{http://twistedmatrix.com/documents/11.0.0/api/twisted.internet.endpoints.html#serverFromString}. To listen on all interfaces on the TCP port 9010, use the following string: \texttt{tcp:9010}
+
+\textbf{\texttt{hypervisor}} The connection URI to use to connect to the hypervisor through libvirt. The possible available values are described online at: \url{http://libvirt.org/uri.html}
+
+\textbf{\texttt{statedir}} The path to the directory where the \gls{vm} state file is saved to perform an offline migration. Has to reside on a shared location and be the same for all \texttt{remotevirt} daemon instances.
+
+\textbf{\texttt{clonedir}} The path to the directory where the cloned disk images to run the different \glspl{vm} are saved. Has to reside on a shared location and be the same for all \texttt{remotevirt} daemon instances.
+
+\textbf{\texttt{imagedir}} The path to the directory where the base disk images to clone to start a \gls{vm} are stored. Has to reside on a shared location and be the same for all \texttt{remotevirt} daemon instances.
+
+\textbf{\texttt{clonebin}} The complete shell command to use to clone a disk image. This value will be interpolated for each cloning operation using Python's \texttt{string.format} method. The available interpolated values are the \texttt{source} and the \texttt{destionation} of the disk image. The suggested value is \texttt{/usr/bin/qemu-img create -f qcow2 -b {source} {destination}}.
+
+
+\section{Usage}
+
+The \gls{vurm} project provides a collection of command line utilities to both run and interact with the system. This section describes the provided utilities and their command line usage.
+
+\subsection{Controller daemon}
+
+Starts a new \gls{vurm} controller daemon on the local machine by loading configuration from the default locations or from the specified path.
+
+\lstset{language={},numbers=none,xleftmargin=4pt,framexleftmargin=4pt}
+\lstset{caption=Synopsis of the \texttt{vurmctld} command}
+\begin{lstlisting}
+usage: vurmctld [-h] [-c CONFIG]
+
+VURM controller daemon.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -c CONFIG, --config CONFIG
+                        Configuration file
+\end{lstlisting}
+
+
+\subsection{Remotevirt daemon}
+
+Starts a new \texttt{remotevirt} daemon on the local machine by loading configuration from the default locations or from the specified path.
+
+\lstset{caption=Synopsis of the \texttt{vurmd-libvirt} command}
+\begin{lstlisting}
+usage: vurmctld [-h] [-c CONFIG]
+
+VURM libvirt helper daemon.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -c CONFIG, --config CONFIG
+                        Configuration file
+\end{lstlisting}
+
+\subsection{Virtual cluster creation}
+
+Requests a new virtual cluster creation of a given size to the \gls{vurm} controller daemon. An optional minimal size and priority can also be defined. The configuration is loaded from the default locations or from the specified path.
+
+\lstset{caption=Synopsis of the \texttt{valloc} command}
+\begin{lstlisting}
+usage: valloc [-h] [-c CONFIG] [-p PRIORITY] [minsize] size
+
+VURM virtual cluster allocation command
+
+positional arguments:
+  minsize               Minimum acceptable virtual cluster size
+  size                  Desired virtual cluster size
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -c CONFIG, --config CONFIG
+                        Configuration file
+  -p PRIORITY, --priority PRIORITY
+                        Virtual cluster priority
+\end{lstlisting}
+
+\subsection{Virtual cluster release}
+
+Releases a specific or all virtual clusters currently defined on the system. The configuration is loaded from the default locations or from the specified path.
+
+\lstset{caption=Synopsis of the \texttt{vrelease} command}
+\begin{lstlisting}
+usage: vrelease [-h] [-c CONFIG] (--all | cluster-name)
+
+VURM virtual cluster release command.
+
+positional arguments:
+  cluster-name          Name of the virtual cluster to release
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -c CONFIG, --config CONFIG
+                        Configuration file
+  --all                 Release all virtual clusters
+\end{lstlisting}
+
+%\section{Extension}
+%\subsection{Resource provisioner}
+%
+%interfaces
+%
+%how to add
+%
+%\subsection{Migration allocator}
+%
+%interface + methods
+%
+%how to add
+%
+%\subsection{Migration scheduler}
+%
+%interfaces + method
+%
+%how to add
+%
+%\subsection{Migration manager}
+%
+%interfaces + method
+%
+%how to add
+
+\section{VM image creation}
+\label{sec:vm-creation}
+
+The operating system installed on the disk image used to spawn new virtual machines has to respect a given set of constraints. This section aims to expose the different prerequisites for such an image to work seamlessly in a \gls{vurm} setup.
+
+\subsection{Remote login setup}
+
+Once started and online, the operating system has to allow remote login via SSH. The username, port and public key used to connect to the virtual machine have to be provided by the \gls{vurm} system administrator, but it is the users responsibility to make sure that its virtual machine will allow the user to login remotely.
+
+All most common distributions already come with an SSH client installed and correctly setup. The only remaining task are to create the correct user and copy the provided public key to the correct location. Refer to the distribution documentation to learn how users are created and how to allow a client to authenticate against a given public key (normally it is sufficient to copy the key in the \texttt{$\sim$/.ssh/authorized\_keys} file).
+
+
+\subsection{IP address communication}
+
+It is the responsibility of the virtual machine operating system to communicate its IP address back to the \texttt{remotevirt} daemon. A script to retrieve and write the IP address to the serial port is provided in the \autoref{lst:serialip3}.
+
+\lstset{language=bash,caption=Shell script to write the \gls{ip} address to the serial port,label=lst:serialip3}
+\begin{lstlisting}
+#!/bin/sh
+ifconfig eth0 | grep -oE '([0-9]{1,3}\.){3}[0-9]{1,3}' | head -1 >/dev/ttyS0
+\end{lstlisting}
+
+This script has to be triggered once the IP address is received by the guest operating system. A possible approach is to use the triggering capabilities offered by the default \texttt{dhclient} by placing the \gls{ip} sending script inside the \texttt{/etc/dhcp3/dhclient-exit-hooks.d/} directory. Each script contained in this directory will be executed each time the \gls{dhcp} client receives a new \gls{ip} address lease.
