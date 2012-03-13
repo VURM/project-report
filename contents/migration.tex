@@ -1,7 +1,7 @@
 \chapter{Migration}
 \label{sec:migration}
 
-Resources allocation to jobs is difficult task to execute optimally and often depends on a plethora of different factors. Most job schedulers are conceived to schedule jobs and allocate resources to them upfront, with only limited abilities to intervene once a job entered the running state.
+Resources allocation to jobs is a difficult task to execute optimally and often depends on a plethora of different factors. Most job schedulers are conceived to schedule jobs and allocate resources to them upfront, with only limited abilities to intervene once a job entered the running state.
 
 Process migration, or, in this specific case, \gls{vm} migration, allows to dynamically adjust resource allocation and job scheduling as new information becomes available even if a job was already started. This runtime adjustment is applied to the system by moving jobs from one resource to another as necessity arises.
 
@@ -97,7 +97,7 @@ Methods to calculate all those values are provided by the \gls{vurm} implementat
 
 \subsection{Allocators, schedulers and migration managers}
 
-The class diagram in the \autoref{fig:migration-framework} adds three new interfaces to the physical cluster provisioner architecture: the \texttt{IResourceAllocator} realization is in charge to decide which \glspl{vm} have to be migrated to which physical node, the \texttt{IMigrationScheduler} realization schedules migrations by defining dependencies between them in order to optimize the execution time and the \texttt{IMigrationManager} realization is responsible to actually carry out each single migration. Each one of these three interfaces have to be implemented by one or more objects and passed to the \texttt{remotevirt} provisioner at creation time.
+The class diagram in the \autoref{fig:migration-framework} adds three new interfaces to the physical cluster provisioner architecture: the \texttt{IResourceAllocator} realization is in charge to decide which \glspl{vm} have to be migrated to which physical node, the \texttt{IMigrationScheduler} realization schedules migrations by defining dependencies between them in order to optimize the execution time and limit resources usage, and the \texttt{IMigrationManager} realization is responsible to actually carry out each single migration. Each one of these three interfaces have to be implemented by one or more objects and passed to the \texttt{remotevirt} provisioner at creation time.
 
 The interactions between the provisioner and these three components of the migration framework is illustrated in the sequence diagram in \autoref{fig:migration-sequence} on page \pageref{fig:migration-sequence}. Each one of the intervening components is further described in the following paragraphs.
 
@@ -155,7 +155,7 @@ The implemented algorithm can be divided in four different steps; each one of th
 \subsection{Cluster weighing}
 \label{sec:cluster-weighing}
 
-This step takes care of assigning an integer computing unit value to each cluster while accounting for rounding errors. An integer value is needed because in this simple allocator version, nodes are not shared between clusters. The algorithm pseudocode to round the value calculated using the \autoref{eq:cuvc} is reported in \autoref{lst:curounding}.
+This step takes care of assigning an integer computing unit value to each cluster while accounting for rounding errors. An integer value is needed because in this simple allocator version, nodes are not shared between clusters (which means that it is not possible to allocate only a fraction of a node to a virtual cluster). The algorithm pseudocode to round the value calculated using the \autoref{eq:cuvc} is reported in \autoref{lst:curounding}.
 	
 \lstset{language=python,caption=CU rounding algorithm,label=lst:curounding}
 \begin{lstlisting}
@@ -215,11 +215,11 @@ The \autoref{tab:rounding-algo} provides an example of the application of the de
 
 \subsection{Nodes to cluster allocation}
 
-Once that each cluster has an integer computing units value attached to it, the algorithm goes on by assigning a set of nodes to each virtual cluster in order to fulfill its computing power requirements.
+Once that each cluster has an integer computing unit value attached to it, the algorithm goes on by assigning a set of nodes to each virtual cluster in order to fulfill its computing power requirements.
 
-The implemented algorithm assigns nodes to clusters starting with the cluster with the highest computing unit assigned to it and then proceeding in descending order. Firstly, the most powerful available node is allocated to the current cluster and then the algorithm iterates over all available nodes in descending computing power order and assigns them to the cluster as long as the cluster computing power is not exceeded.
+The implemented algorithm assigns nodes to clusters starting with the cluster with the highest computing unit assigned to it and then proceeding in descending order. Firstly, the most powerful available node is allocated to the current cluster\footnote{This prevents large nodes (i.e. exceeding the requirements of the most demanding cluster) to be left unused.} and then the algorithm iterates over all available nodes in descending computing power order and assigns them to the cluster as long as the cluster computing power is not exceeded.
 
-The \autoref{lst:nodetovc} illustrates a simplified version of the implemented algorithm. Note that the allocated computing units (\texttt{currentPower}) is also returned as it can be different than the threshold value (\texttt{assignedComputingUnits}).
+The \autoref{lst:nodetovc} illustrates a simplified version of the implemented algorithm. Note that the allocated computing units (\texttt{currentPower}) is also returned as it can differ from the threshold value (\texttt{assignedComputingUnits}).
 
 \lstset{language=python,caption=Nodes to virtual cluster allocation,label=lst:nodetovc}
 \begin{lstlisting}
@@ -316,7 +316,7 @@ Once the second set of migrations was scheduled too, the resource allocator can 
 
 To obviate to this problem, and to allow for different scheduling strategies to be put in place, the \texttt{remotevirt} provisioner supports a special component called \emph{migration scheduler}. The responsibility of this component is to schedule migrations by establishing different dependency links between the single migration tasks in order to keep resources usage under a certain threshold while optimizing the maximum number of concurrent migrations.
 
-The default implementation shipped with the physical cluster provisioner is a simple \emph{noop} scheduler which lets all migrations execute concurrently. A more optimized solution was not implemented due to time constraints, but the problem was analyzed on a theoretical level and formulated in terms of a graph coloring problem. This section aims to explain the theoretical basis behind the optimal solution and to provide the simple greedy algorithm for a possible future implementation.
+The default implementation shipped with the physical cluster provisioner is a simple \emph{noop} scheduler which lets all migrations execute concurrently. A more optimized solution was not implemented due to time constraints, but the problem was analyzed on a theoretical level and formulated in terms of a graph coloring problem. This section aims to explain the theoretical basis behind the optimal solution and provides the simple greedy algorithm for a possible future implementation.
 
 The problem statement for which a solution is sought is formulated in the following way: \emph{find the optimal scheduling to execute all migrations using the minimum number of steps in such way that no migration involving one or more common nodes is carried out during the same step.}
 
@@ -376,14 +376,14 @@ Once the edges are colored, it is possible to execute migrations concurrently as
 		\includegraphics[width=.45\textwidth]{figures/migration-example-1-schedule}
 	}
 	\caption{Edge coloring and the respective migration scheduling.}
-	\label{fig:migration-process}
+	\label{fig:migration-process-2}
 \end{figure}
 
 By Vizing's theorem \cite{vizing}, the number of colors needed to edge color a simple graph is either its maximum degree $\Delta$ or $\Delta+1$. In our case, the graph can be a multigraph because multiple migrations can occur between the same two nodes and thus the number of colors may be as large as $3\Delta/2$.
 
 There are polynomial time algorithms that construct optimal colorings of bipartite graphs, and colorings of non-bipartite simple graphs that use at most $\Delta+1$ colors \cite{bipartite}; however, the general problem of finding an optimal edge coloring is NP-complete and the fastest known algorithms for it take exponential time.
 
-A good approximation is offered by the greedy coloring algorithm applied to the graph vertex coloring problem. The graph vertex coloring problems is the same as the edge coloring problem but applied to adjacent vertices instead. As the edge chromatic number of a graph $G$ is equal to the vertex chromatic number of its line graph $L(G)$, it is possible to apply this algorithm to the edge coloring problem as well.
+A good approximation is offered by the greedy coloring algorithm applied to the graph vertex coloring problem. The graph vertex coloring problem is the same as the edge coloring problem but applied to adjacent vertices instead. As the edge chromatic number of a graph $G$ is equal to the vertex chromatic number of its line graph $L(G)$, it is possible to apply this algorithm to the edge coloring problem as well.
 
 Greedy coloring exploits a greedy algorithm to color the vertices of a graph that considers the vertices in sequence and assigns each vertex its first available color. Greedy colorings do not in general use the minimum number of colors possible and can use as much as $2\Delta - 1$ colors (which may be nearly twice as many number of colors as is necessary); however the algorithm exposes a time complexity of $O(\Delta^2 + log^{*}n)$ for every $n$-vertex graph \cite{greedy-complexity} and it has the advantage that it may be used in an online algorithm setting in which the input graph is not known in advance. In this setting, its competitive ratio is two, and this is optimal for every online algorithm \cite{greedy}.
 
