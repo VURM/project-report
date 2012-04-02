@@ -20,7 +20,9 @@
 *.lol
 *.lot
 *.out
-*.pdf
+report.pdf
+report-preview.pdf
+statement.pdf
 *.toc
 *.bcf
 *.run.xml
